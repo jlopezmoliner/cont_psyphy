@@ -1,0 +1,34 @@
+---
+title: "Continuous psychophysics tutorial"
+author: "Joan López-Moliner"
+format: html
+editor: visual
+---
+
+# What do you need installed?
+
+We will use R to call the functions to fit continuous psychophysics models. However, since the functions we will be calling are written in C++, we will need to compile the file *cpsyKalman.cpp* located in the cpp folder.
+
+In order to compile this file, you need the packages `reticulate`, `Rcpp` and `RccpArmadillo`.
+
+
+In order to use RccpArmadillo and compile *cpsyKalman.cpp* you will need an R installation which is able to compile c++ programs.
+
+```{r}
+
+if(!("Rcpp" %in% (.packages()))){
+  require(Rcpp)
+  require(RcppArmadillo)
+}
+
+sourceCpp("./cpp/cpsyKalman.cpp")
+
+
+```
+
+If you got no complaints in the last chunk you're ready to go!
+
+If you encounter difficulties, probably you need some compilers tools (e.g. Rtools or a fortran installation to run RccpArmadillo).
+
+Just come to see me if you get stuck!
+
