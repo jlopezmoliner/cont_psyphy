@@ -29,11 +29,7 @@ If you got no complaints in the last chunk you're ready to go!
 
 If you encounter difficulties, probably you need some compilers tools (e.g. Rtools or a fortran installation to run RccpArmadillo). If fortran libraries were not found you should and you have a mac you need to install the GNU Fortran compiler from this page:
 
-<<<<<<< HEAD
 <https://mac.r-project.org/tools/>
-=======
 https://mac.r-project.org/tools/
-Just come to see me if you get stuck!
->>>>>>> 4fe1434edf59f7e7fe1f9dfc3d327c9b2c8a9d51
 
 Just come to see me if you get stuck!
