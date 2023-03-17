@@ -5,8 +5,7 @@ format: html
 editor: visual
 ---
 
-
-Just to make sure we have the functions 
+Just to make sure we have the functions
 
 ```{r}
 
@@ -47,8 +46,7 @@ $$
 
 The observation matrix is like before:
 
-$$\mathbf{y}_{t} = H\mathbf{x}_t + v_t,\ \  p(v_t) \sim \mathcal N(0,R)$$
-But the uncertainty is also a two states matrix, one uncertainty for position and another for speed:
+$$\mathbf{y}_{t} = H\mathbf{x}_t + v_t,\ \  p(v_t) \sim \mathcal N(0,R)$$ But the uncertainty is also a two states matrix, one uncertainty for position and another for speed:
 
 $$R=\left( 
 \begin{array}{}
@@ -57,7 +55,6 @@ $$R=\left(
 \end{array}
 \right)
 $$
-
 
 Note that the matrices are different to campture the two states and the dynamic. We assume we have an ideal observer, so the observation matrix $C$ is consistent with the observer to sense the position and velocity with some sensory uncertainty.
 
@@ -85,23 +82,21 @@ s1 <- simulSequence(A,C,V,W,x0 = c(0.0,2),xhat0 = c(0,2),T=N)
 dd <- data.frame(time=1:N,x=s1[,1],xhat=s1[,2],v=s1[,3],vhat=s1[,4])
 
 ggplot(dd) +
-  geom_line(aes(time,xhat,col="Estimate"),linewidth=1.5,alpha=0.5) + # the process or state
-  geom_line(aes(time,x,col="Actual")) +
+  geom_line(aes(time,xhat,col="Estimate"),linewidth=1.5,alpha=0.5) + # posterior
+  geom_line(aes(time,x,col="Actual")) + # the actual process or state
   scale_color_manual("State",values=c("black","red")) +
   ylab("Position")
 
 ggplot(dd) +
-  geom_line(aes(time,v,col="Estimate")) + # the process or state
-  geom_line(aes(time,vhat,col="Actual")) +
+  geom_line(aes(time,vhat,col="Estimate")) + #the posterior process or state
+  geom_line(aes(time,v,col="Actual")) + # actual process
   scale_color_manual("State",values=c("black","red")) +
   ylab("Speed")
 
 
 ```
 
-
-We try to estimate the sensory uncertainty.
-Since we estimate 2 parameters, we will use optim rather than optimize.
+We try to estimate the sensory uncertainty. Since we estimate 2 parameters, we will use optim rather than optimize.
 
 ```{r}
 
@@ -123,5 +118,3 @@ xx <- aperm(xx,c(1,3,2))
 optim(par=c(0.01,0.010),PosVel.op,x=xx)
 
 ```
-
-
