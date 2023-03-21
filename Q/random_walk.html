@@ -149,9 +149,9 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </div>
 <div class="cell-output cell-output-stderr">
 <pre><code>── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
-✔ ggplot2 3.4.0      ✔ purrr   0.3.5 
-✔ tibble  3.1.8      ✔ dplyr   1.0.10
-✔ tidyr   1.2.1      ✔ stringr 1.4.1 
+✔ ggplot2 3.4.0      ✔ purrr   1.0.1 
+✔ tibble  3.2.0      ✔ dplyr   1.0.10
+✔ tidyr   1.3.0      ✔ stringr 1.5.0 
 ✔ readr   2.1.3      ✔ forcats 0.5.2 
 ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
 ✖ dplyr::filter() masks stats::filter()
@@ -169,7 +169,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 </section>
 <section id="first-step-define-the-model-dynamics-of-the-random-walk" class="level1">
 <h1>First step: define the model dynamics of the random walk</h1>
-<p>A random walk (RW) model denotes the scenario in which a person tracks a target that is changing its position randomly at every time step. A RW is defined as: <span class="math display">\[x_{t+1}=x_t+ w_t,\ \  p(v_t) \sim \mathcal N(0,Q)\]</span> <span class="math inline">\(v_t\)</span> is the random component and it, usually, follow a Gaussian distribution with 0 mean and variance <span class="math inline">\(Q\)</span>.</p>
+<p>A random walk (RW) model denotes the scenario in which a person tracks a target that is changing its position randomly at every time step. A RW is defined as: <span class="math display">\[x_{t+1}=x_t+ v_t,\ \  p(v_t) \sim \mathcal N(0,Q)\]</span> <span class="math inline">\(v_t\)</span> is the random component and it, usually, follow a Gaussian distribution with 0 mean and variance <span class="math inline">\(Q\)</span>.</p>
 <p>In R this can be implemented as:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>  x0 <span class="ot">&lt;-</span> <span class="dv">0</span> <span class="co"># initial position</span></span>
@@ -212,7 +212,7 @@ Process noise
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>C <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">1</span>),<span class="dv">1</span>,<span class="dv">1</span>) <span class="co"># 0 can be dt is position is using velocity</span></span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co">#kf = kfOscillation(q_pos=0.01,q_vel=0.001,sigma_p=0.05,sigma_v=0.022,dt=1/90,freq=0.1)</span></span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>V <span class="ot">=</span> <span class="fu">matrix</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>) <span class="co"># process noise</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>W <span class="ot">=</span> <span class="fu">matrix</span>(<span class="dv">3</span>,<span class="dv">1</span>,<span class="dv">1</span>) <span class="co"># observation noise </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>W <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fl">0.5</span>,<span class="dv">1</span>,<span class="dv">1</span>) <span class="co"># observation noise </span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>We have now define our model for a simple random walk. Now we can simulate our own random walk with the function <code>simulateSequence</code>. This function will return a two columns matrix: the first column is the state (i.e.&nbsp;actual position), and the second column is the simulated response or posterior. The parameters of <code>simulSequence</code> are the transition matrix <span class="math inline">\(A\)</span>, observation matrix <span class="math inline">\(C\)</span>, process and observation noise <span class="math inline">\(W\)</span> and <span class="math inline">\(V\)</span>, and finally the initial state (x0), an initial estimate the the state (xhat0) and the number of time steps (T). In our case, the state is just the position that is changing randomly.</p>
 <p>We simulate one dimensional movement, but if you have two dimensions, you just do the same for each dimension, since both are totally independent.</p>
@@ -245,10 +245,10 @@ Process noise
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu">optimise</span>(RW.op,<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">10</span>),<span class="at">x=</span>s1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$minimum
-[1] 2.930738
+[1] 0.489947
 
 $objective
-[1] 3985.96</code></pre>
+[1] 2949.072</code></pre>
 </div>
 </div>
 <p>We can always check the value of the Kalman gain and loglik:</p>
@@ -257,10 +257,10 @@ $objective
 <div class="cell-output cell-output-stdout">
 <pre><code>$K
           [,1]
-[1,] 0.2823757
+[1,] 0.8284271
 
 $loglik
-[1] -3986.088</code></pre>
+[1] -2949.507</code></pre>
 </div>
 </div>
 <div class="callout-note callout callout-style-default callout-captioned">
@@ -288,10 +288,10 @@ Exercise
 <span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="fu">optimise</span>(RW.op,<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">10</span>),<span class="at">x=</span>xx)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$minimum
-[1] 2.996266
+[1] 3.028006
 
 $objective
-[1] 80225.39</code></pre>
+[1] 80359.31</code></pre>
 </div>
 </div>
 </section>

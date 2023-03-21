@@ -32,7 +32,7 @@ We will use `simulSequence` to simulate tracking trajectories.
 
 # First step: define the model dynamics of the random walk
 
-A random walk (RW) model denotes the scenario in which a person tracks a target that is changing its position randomly at every time step. A RW is defined as: $$x_{t+1}=x_t+ w_t,\ \  p(v_t) \sim \mathcal N(0,Q)$$ $v_t$ is the random component and it, usually, follow a Gaussian distribution with 0 mean and variance $Q$.
+A random walk (RW) model denotes the scenario in which a person tracks a target that is changing its position randomly at every time step. A RW is defined as: $$x_{t+1}=x_t+ v_t,\ \  p(v_t) \sim \mathcal N(0,Q)$$ $v_t$ is the random component and it, usually, follow a Gaussian distribution with 0 mean and variance $Q$.
 
 In R this can be implemented as:
 
@@ -78,7 +78,7 @@ A <- matrix(c(1),1,1)  # Just one component
 C <- matrix(c(1),1,1) # 0 can be dt is position is using velocity
 #kf = kfOscillation(q_pos=0.01,q_vel=0.001,sigma_p=0.05,sigma_v=0.022,dt=1/90,freq=0.1)
 V = matrix(1,1,1) # process noise
-W = matrix(3,1,1) # observation noise 
+W = matrix(0.5,1,1) # observation noise 
 ```
 
 We have now define our model for a simple random walk. Now we can simulate our own random walk with the function `simulateSequence`. This function will return a two columns matrix: the first column is the state (i.e. actual position), and the second column is the simulated response or posterior.

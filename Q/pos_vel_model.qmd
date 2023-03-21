@@ -46,7 +46,7 @@ $$
 
 The observation matrix is like before:
 
-$$\mathbf{y}_{t} = H\mathbf{x}_t + v_t,\ \  p(v_t) \sim \mathcal N(0,R)$$ But the uncertainty is also a two states matrix, one uncertainty for position and another for speed:
+$$\mathbf{y}_{t} = C\mathbf{x}_t + v_t,\ \  p(v_t) \sim \mathcal N(0,R)$$ But the uncertainty is also a two states matrix, one uncertainty for position and another for speed:
 
 $$R=\left( 
 \begin{array}{}
