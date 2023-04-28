@@ -82,14 +82,14 @@ s1 <- simulSequence(A,C,V,W,x0 = c(0.0,2),xhat0 = c(0,2),T=N)
 dd <- data.frame(time=1:N,x=s1[,1],xhat=s1[,2],v=s1[,3],vhat=s1[,4])
 
 ggplot(dd) +
-  geom_line(aes(time,xhat,col="Estimate"),linewidth=1.5,alpha=0.5) + # posterior
   geom_line(aes(time,x,col="Actual")) + # the actual process or state
+  geom_line(aes(time,xhat,col="Estimate"),linewidth=1.5,alpha=0.5) + # posterior
   scale_color_manual("State",values=c("black","red")) +
   ylab("Position")
 
 ggplot(dd) +
-  geom_line(aes(time,vhat,col="Estimate")) + #the posterior process or state
   geom_line(aes(time,v,col="Actual")) + # actual process
+  geom_line(aes(time,vhat,col="Estimate")) + #the posterior process or state
   scale_color_manual("State",values=c("black","red")) +
   ylab("Speed")
 
