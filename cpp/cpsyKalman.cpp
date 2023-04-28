@@ -32,6 +32,10 @@ using namespace arma;
   arma::colvec z;    Input vector with dimension m 
   */
 
+/* cpsy_get_nll_: implements simple model Bonnen at al 2015.  
+ It is not for general purposes:  use K_logLik instead for more general models
+*/  
+  
 // [[Rcpp::export]]
 arma::mat cpsy_get_nll_(const arma::mat &x, const arma::mat &xhat,const arma::mat &q, const arma::mat &r)
   {
@@ -109,16 +113,17 @@ arma::mat simulSequence(const arma::mat &A, const arma::mat &C, const arma::mat 
   
 //  X(0,span())= X(0,span()) + join_cols(epsilon(0,span()),eta(0,span()));
   for(size_t i=1;i<T;i++){
-    
+    vec xhat_prev = Xhat.row(i - 1).t();
+    vec x_prev = X.row(i - 1).t();
     //(A*X(span(i-1),span()).t() + epsilon(i)).t();
-     X(i,span()) = (A*X(span(i-1),span()).t() + epsilon(i)).t();
+     X.row(i) = (A*x_prev).t() + epsilon.row(i-1);// Attention: epsilon & eta after .t()+
     // generate observation
-    arma::mat y =  (C*X(i,span()).t() + eta(i)).t(); //1x2
+    arma::mat y =  (C*X.row(i).t()).t() + eta.row(i-1); //1x2
  //   printf("%d %d\n",y.n_rows,y.n_cols);
     // update belief
-    arma::mat xpred = A*Xhat(span(i-1),span()).t(); // Xhat column vector, also xpred
+    arma::mat xpred = A*xhat_prev; // Xhat column vector, also xpred
     // Xhat(i,span()) = (C*X(i,span()).t() + eta(i)).t();
-     Xhat(i,span()) = (xpred + (K*(y.t()- C*xpred))).t();
+     Xhat.row(i) = (xpred + (K*(y.t()- C*xpred))).t();
   } 
   
   arma::mat Res = join_horiz(X,Xhat);
@@ -129,6 +134,8 @@ arma::mat simulSequence(const arma::mat &A, const arma::mat &C, const arma::mat 
     
 }
 //R>> simulSequence(Am,C,V,W,x0 = c(-0.14,0.0),xhat0 = c(-0.14,0),T=1500)
+
+/* K_logLik: returns Kalman gain and logLik of the Kalman model */
 
 // [[Rcpp::export]]
 List K_logLik(const arma::cube &x,const arma::mat &A, const arma::mat &C, const arma::mat &V, const arma::mat &W)
@@ -252,7 +259,8 @@ arma::vec dmvnrm_arma_fast(arma::mat const &x,
   return exp(out);
 }
 
-
+// implementation of discrete-time Riccati equation
+// to compute K (kalman gain) and controller L 
 arma::mat riccati(arma::mat A, arma::mat B, arma::mat Q,arma::mat R,size_t T)
 {
   
@@ -275,6 +283,24 @@ arma::mat kalman_gain_(arma::mat A, arma::mat C, arma::mat V, arma::mat W, size_
   
 }
 
+
+// Args:
+// A (arma::mat): state transition matrix
+// B (arma::mat): control matrix
+// Q (arma::mat): control costs
+// R (arma::mat): action costs
+// T (size_t): time steps
+
+arma::mat control_law_(arma::mat A, arma::mat B, arma::mat Q, arma::mat R, size_t T)
+{
+  arma::mat riccati(arma::mat A, arma::mat B, arma::mat Q, arma::mat R, size_t T);
+  
+  arma::mat S = riccati(A, B, Q, R, T);
+
+  arma::mat L = inv(B.t()*S*B+R) * B.t()*S*A;
+  return L;
+    
+}
 
 // ax <- 0.8
 // az <- 0.3
