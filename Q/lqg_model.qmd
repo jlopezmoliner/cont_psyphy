@@ -202,6 +202,8 @@ cost <- t(x_t) %*% Q %*% x_t
 print(cost)
 ```
 
+## Model definition
+
 We assume we have a bounded actor (Straub & Rothkopt (2022) eLife) in which we also minimize an action cost R. 
 We will define a model for the process dynamics and another for the actor.
 
@@ -231,6 +233,8 @@ actor <- list(A=A,B=B,C=C,V=V,W=W,Q=Q,R=R)
 
 ```
 
+## Simulation of sequences
+
 Now we can simulate some sequences:
 
 ```{r}
@@ -244,6 +248,8 @@ ggplot(res2) +
   scale_color_manual(values=c("blue","red"))
 
 ```
+
+## Fitting of parameter
 
 We try now to fit one parameter, for example the perceptual noise of the target
 

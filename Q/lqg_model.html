@@ -295,6 +295,9 @@ Q =
 [1,]    1</code></pre>
 </div>
 </div>
+</section>
+<section id="model-definition" class="level2">
+<h2 class="anchored" data-anchor-id="model-definition">Model definition</h2>
 <p>We assume we have a bounded actor (Straub &amp; Rothkopt (2022) eLife) in which we also minimize an action cost R. We will define a model for the process dynamics and another for the actor.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">#bounded actor</span></span>
@@ -317,6 +320,9 @@ Q =
 <span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>R <span class="ot">&lt;-</span> <span class="fu">matrix</span>(action_cost,<span class="dv">1</span>,<span class="dv">1</span>)</span>
 <span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>actor <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">A=</span>A,<span class="at">B=</span>B,<span class="at">C=</span>C,<span class="at">V=</span>V,<span class="at">W=</span>W,<span class="at">Q=</span>Q,<span class="at">R=</span>R)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</section>
+<section id="simulation-of-sequences" class="level2">
+<h2 class="anchored" data-anchor-id="simulation-of-sequences">Simulation of sequences</h2>
 <p>Now we can simulate some sequences:</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>T <span class="ot">&lt;-</span> <span class="dv">500</span></span>
@@ -331,21 +337,25 @@ Q =
 <p><img src="lqg_model_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
+</section>
+<section id="fitting-of-parameter" class="level2">
+<h2 class="anchored" data-anchor-id="fitting-of-parameter">Fitting of parameter</h2>
 <p>We try now to fit one parameter, for example the perceptual noise of the target</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>Ntrials <span class="ot">&lt;-</span> <span class="dv">20</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>whol <span class="ot">&lt;-</span> <span class="fu">replicate</span>(Ntrials, <span class="fu">lqg_simSequence</span>(dyn,actor,<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>),<span class="dv">1</span>,<span class="dv">2</span>),<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>),<span class="dv">1</span>,<span class="dv">2</span>),T,<span class="at">return_all =</span> <span class="cn">FALSE</span>)) <span class="co"># we only return the state (not the belief)</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>xx <span class="ot">&lt;-</span> <span class="fu">simplify2array</span>(whol)</span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>xx <span class="ot">&lt;-</span> <span class="fu">aperm</span>(xx,<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">2</span>))</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="fu">optimise</span>(lqgRW.op,<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">10</span>),<span class="at">x=</span>xx,<span class="at">dyn=</span>dyn,<span class="at">actor=</span>actor)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)  <span class="co"># Set the random seed to 123</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>Ntrials <span class="ot">&lt;-</span> <span class="dv">20</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>whol <span class="ot">&lt;-</span> <span class="fu">replicate</span>(Ntrials, <span class="fu">lqg_simSequence</span>(dyn,actor,<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>),<span class="dv">1</span>,<span class="dv">2</span>),<span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>),<span class="dv">1</span>,<span class="dv">2</span>),T,<span class="at">return_all =</span> <span class="cn">TRUE</span>)) <span class="co"># we only return the state (not the belief)</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>xx <span class="ot">&lt;-</span> <span class="fu">simplify2array</span>(whol)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>xx <span class="ot">&lt;-</span> <span class="fu">aperm</span>(xx,<span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">2</span>))</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">optimise</span>(lqgRW.op,<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">10</span>),<span class="at">x=</span>xx[,,<span class="sc">-</span><span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">4</span>,<span class="dv">5</span>)],<span class="at">dyn=</span>dyn,<span class="at">actor=</span>actor) <span class="co"># we only need to pass the state not the estimates</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>$minimum
-[1] 5.456167
+[1] 5.43951
 
 $objective
-[1] 21598.74</code></pre>
+[1] 21692.1</code></pre>
 </div>
 </div>
 <div class="cell">
