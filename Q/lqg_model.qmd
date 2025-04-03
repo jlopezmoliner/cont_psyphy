@@ -249,7 +249,7 @@ ggplot(res2) +
 
 ```
 
-## Fitting of parameter
+## Parameter fitting  
 
 We try now to fit one parameter, for example the perceptual noise of the target
 
