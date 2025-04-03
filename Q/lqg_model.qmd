@@ -1,0 +1,282 @@
+---
+title: "LQG model: random walk"
+author: "Joan López-Moliner"
+format: html
+editor: visual
+---
+
+Just to make sure we have the functions
+
+```{r}
+#| label: load
+#| warning: false
+
+
+if(!("Rcpp" %in% (.packages()))){
+  require(Rcpp)
+  require(RcppArmadillo)
+}
+require(tidyverse)
+
+sourceCpp("../cpp/cpsyLQG.cpp")
+
+source("../R/functions.R")
+
+```
+
+To illustrate the LQG (linear quadratic gaussian), we use a simplest model which is a random walk on the position of a target that we want to track. Unlike the Kalman model in which we only have the dynamics, here we also have the controler that performs the action of tracking. 
+
+The R code here is based on the LQG code from the LQG tutorial at Constantin Rothkopt lab [LQG tutorial](https://github.com/RothkopfLab/lqg/blob/main/notebooks/Tutorial.ipynb "LQG tutorial")
+
+For further information the reference to look at is: 
+
+Straub, D., & Rothkopf, C. A. (2022). Putting perception into action with inverse optimal control for continuous psychophysics. [Elife, 11, e76635.](https://doi.org/10.7554/eLife.76635)
+
+
+The stimulus dynamics is defined as:
+
+$${\bf x}_{t+1}= A{\bf x}_t + B{\bf u}_t + V\epsilon_t, \ \ \epsilon_t \sim \mathcal{N}(0,I)$$
+and the observation equation:
+$${\bf y}_t = C{\bf x}_t + W\eta_t, \ \ \eta_t\sim \mathcal{N}(0,I)$$
+
+
+
+It is assumed that the actor solves the LQG problem by minimizing a quadratic cost function:
+
+$$J(u_{1:T}) =\sum_{t=1}^T {\bf x}_t^TQ{\bf x}_t + {\bf u}_t^T R{\bf u}_t  $$
+
+We will define the corresponding matrices to solve a simple random walk process and showcase an example.
+
+$$A=\left( 
+\begin{array}{}
+1 & 0 \\
+0 & 1
+\end{array}
+\right),\   
+B=\left(
+\begin{array}{}
+0 \\
+dt 
+\end{array}
+\right), \ 
+C = \left( 
+\begin{array}{}
+1 & 0 \\
+0 & 1
+\end{array}
+\right), \ 
+V=\left( 
+\begin{array}{}
+\sigma_{rw} & 0 \\
+0 & \sigma_{m}
+\end{array}
+\right), \ 
+W=\left( 
+\begin{array}{}
+\sigma_{target} & 0 \\
+0 & \sigma_{cursor}
+\end{array}
+\right), \ 
+Q = \left( 
+\begin{array}{}
+1 & -1 \\
+-1 & 1
+\end{array}
+\right), \ 
+R= \left(c\right)
+$$
+
+Let's have a closer look at the process dynamics. $A$ is a 2x2 matrix, which means we have two states. Unlike before in which we had position and velocity, we now have target position $x^T$ and cursor position $x^C$ 
+
+$$
+\left(
+\begin{array}{ll}
+x_{t+1}^T\\
+x_{t+1}^C
+\end{array}
+\right) = 
+\Biggl(
+\begin{array}{ll}
+1 & 0\\
+0 & 1
+\end{array}
+\Biggr) \cdot
+\left(
+\begin{array}{}
+x_{t}^T\\
+x_{t}^C
+\end{array}
+\right) + 
+\Biggl(
+\begin{array}{ll}
+\sigma_{target} & 0 \\
+0 & \sigma_{cursor}
+\end{array}
+\Biggr ) \cdot \eta_t, \ \eta_t\sim \mathcal{N}(0,I)
+$$
+
+
+The observation uncertainty is expressed as a two states matrix $W$, the uncertainty of perceiving the target ($\sigma_{target}$) and the uncertainty of perceiving the cursor $\sigma_{cursor}$:
+
+$$
+\left(
+\begin{array}{ll}
+y_{t}^T\\
+y_{t}^C
+\end{array}
+\right) = 
+\Biggl(
+\begin{array}{ll}
+1 & 0\\
+0 & 1
+\end{array}
+\Biggr) \cdot
+\left(
+\begin{array}{}
+x_{t}^T\\
+x_{t}^C
+\end{array}
+\right) + 
+\Biggl(
+\begin{array}{}
+0 \\ dt \\
+\end{array}
+\Biggr ) \cdot u_t + 
+\Biggl(
+\begin{array}{ll}
+\sigma_{rw} & 0 \\
+0 & \sigma_m
+\end{array}
+\Biggr ) \cdot \eta_t, \ \eta_t\sim \mathcal{N}(0,I)
+$$
+
+## A simple example to illustrate how to compute the cost
+
+Suppose a cursor is tracking a target, so the quadratic cost function is the squared difference between the position of the target $x_1$ and that of the cursor $x_2$. The controller $Bu_t$ will move so that minimizes this cost function 
+$$
+\begin{pmatrix} x_1 & x_2 \end{pmatrix}
+\begin{pmatrix} 1 & -1 \\ -1 & 1 \end{pmatrix}
+\begin{pmatrix} x_1 \\ x_2 \end{pmatrix}
+= x_1^2 - 2x_1x_2 + x_2^2 = (x_1 - x_2)^2
+$$
+One first multiply $Q{\bf x}_t$ and then multiply $\mathbf{x}_t^\top (Q \mathbf{x}_t)$. Of course the program does it for you. You only need to specify the right size matrices.
+
+$$
+\mathbf{x}_t =
+\begin{pmatrix}
+2 \\
+3
+\end{pmatrix}, \quad
+Q =
+\begin{pmatrix}
+1 & -1 \\
+-1 & 1
+\end{pmatrix}
+$$
+
+So suppose that at time $t$ the target is at position 2 and the cursor is at position 3,
+$$
+\mathbf{x}_t^\top Q \mathbf{x}_t =
+\begin{pmatrix} 2 & 3 \end{pmatrix}
+\begin{pmatrix} 1 & -1 \\ -1 & 1 \end{pmatrix}
+\begin{pmatrix} 2 \\ 3 \end{pmatrix}
+= \begin{pmatrix} 2 \\ & 3 \end{pmatrix}
+\begin{pmatrix} -1\ \ 1 \end{pmatrix}
+= 2 \cdot (-1) + 3 \cdot 1 = -2 + 3 = 1
+$$
+
+
+```{r}
+
+# Define the state vector x_t
+x_t <- matrix(c(2, 3), ncol = 1)
+
+# Define the cost matrix Q
+Q <- matrix(c(1, -1,
+              -1, 1), nrow = 2, byrow = TRUE)
+
+# Compute the quadratic form x_t^T Q x_t
+cost <- t(x_t) %*% Q %*% x_t
+
+# Print the result
+print(cost)
+```
+
+We assume we have a bounded actor (Straub & Rothkopt (2022) eLife) in which we also minimize an action cost R. 
+We will define a model for the process dynamics and another for the actor.
+
+```{r}
+#| label: define matrices of the dynamics and actor
+
+#bounded actor
+
+
+action_variability = .5 #0.5
+pos_noise = 1
+sigma_target = 6  #6 # target perceptual variab
+sigma_cursor = 1 #1.0 # cursor prop+visual variab
+action_cost = .05
+dt = 1. / 60.
+
+A <- diag(1,2,2)
+B <- matrix(c(0,dt),2,1)
+C <- diag(1.0,2,2)
+V <- diag(c(pos_noise,action_variability),2,2)
+W <- diag(c(sigma_target,sigma_cursor),2,2)
+dyn <- list(A=A,B=B,C=C,V=V,W=W)
+Q <- matrix(c(1,-1,-1,1),2,2)
+R <- matrix(action_cost,1,1)
+actor <- list(A=A,B=B,C=C,V=V,W=W,Q=Q,R=R)
+
+
+```
+
+Now we can simulate some sequences:
+
+```{r}
+T <- 500
+
+res <- lqg_simSequence(dyn,actor,matrix(c(0,0),1,2),matrix(c(0,0),1,2),T,return_all = TRUE) 
+res2 <- data.frame(T=1:T,target=res[,1],cursor=res[,2])
+ggplot(res2) + 
+  geom_line(aes(T,target,col="target")) +
+  geom_line(aes(T,cursor,col="cursor")) +
+  scale_color_manual(values=c("blue","red"))
+
+```
+
+We try now to fit one parameter, for example the perceptual noise of the target
+
+```{r}
+
+
+set.seed(123)  # Set the random seed to 123
+Ntrials <- 20
+
+whol <- replicate(Ntrials, lqg_simSequence(dyn,actor,matrix(c(0,0),1,2),matrix(c(0,0),1,2),T,return_all = TRUE)) # we only return the state (not the belief)
+xx <- simplify2array(whol)
+xx <- aperm(xx,c(1,3,2))
+
+optimise(lqgRW.op,c(0,10),x=xx[,,-c(3,4,5)],dyn=dyn,actor=actor) # we only need to pass the state not the estimates
+
+```
+
+```{r}
+
+Ntrials <- 1
+
+whol <- replicate(Ntrials, lqg_simSequence(dyn,actor,matrix(c(0,0),1,2),matrix(c(0,0),1,2),T,return_all = TRUE) )
+xx <- simplify2array(whol)
+xx <- aperm(xx,c(1,3,2))
+k <- 1 
+
+res <- data.frame(T=1:T,target=xx[,k,1],cursor=xx[,k,2],target_hat=xx[,k,3],cursor_hat=xx[,k,4])
+
+ggplot(res) + 
+  geom_line(aes(T,target,col="target")) +
+  geom_line(aes(T,cursor,col="cursor")) +
+  geom_line(aes(T,target_hat,col="target_estimate")) +
+  geom_line(aes(T,cursor_hat,col="cursor_estimate")) +
+  scale_color_manual(values=c("blue","orange", "green", "red"))
+
+```
