@@ -37,3 +37,15 @@ compute_ccf <- function(x,maxlag=20)
   res2$trial <- rep(1:ntrials,each=maxlag*2+1)
   res2
 }
+
+
+lqgRW.op <- function(p,x,dyn,actor,sigma_cursor=1)
+{
+  
+  W <- diag(c(sigma_target,sigma_cursor),2,2)
+  W[1,1] <- p
+  dyn$W <- W
+  actor$W <- W
+  #  res <- -K_logLik(x=x,A = A,C = C, V=V, W=W)$loglik
+  res <- -lqg(x,dyn,actor)$loglik
+}

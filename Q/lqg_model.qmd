@@ -43,7 +43,7 @@ $${\bf y}_t = C{\bf x}_t + W\eta_t, \ \ \eta_t\sim \mathcal{N}(0,I)$$
 
 It is assumed that the actor solves the LQG problem by minimizing a quadratic cost function:
 
-$$J(u_{1:T}) =\sum_{t=1}^T {\bf x}_t^TQ{\bf x}_t + {\bf u}_t^T R{\bf u}_t  $$
+$$J(u_{1:T_{max}}) =\sum_{t=1}^{T_{max}} {\bf x}_t^\top Q{\bf x}_t + {\bf u}_t^\top R{\bf u}_t  $$
 
 We will define the corresponding matrices to solve a simple random walk process and showcase an example.
 
@@ -106,11 +106,17 @@ x_{t+1}^C
 x_{t}^T\\
 x_{t}^C
 \end{array}
-\right) + 
+\right)
+ + 
+\Biggl(
+\begin{array}{}
+0 \\ dt \\
+\end{array}
+\Biggr ) \cdot u_t +
 \Biggl(
 \begin{array}{ll}
-\sigma_{target} & 0 \\
-0 & \sigma_{cursor}
+\sigma_{rw} & 0 \\
+0 & \sigma_m
 \end{array}
 \Biggr ) \cdot \eta_t, \ \eta_t\sim \mathcal{N}(0,I)
 $$
@@ -141,11 +147,12 @@ x_{t}^C
 \begin{array}{}
 0 \\ dt \\
 \end{array}
-\Biggr ) \cdot u_t + 
+\Biggr ) \cdot u_t 
++ 
 \Biggl(
 \begin{array}{ll}
-\sigma_{rw} & 0 \\
-0 & \sigma_m
+\sigma_{target} & 0 \\
+0 & \sigma_{cursor}
 \end{array}
 \Biggr ) \cdot \eta_t, \ \eta_t\sim \mathcal{N}(0,I)
 $$
@@ -215,7 +222,7 @@ We will define a model for the process dynamics and another for the actor.
 
 action_variability = .5 #0.5
 pos_noise = 1
-sigma_target = 6  #6 # target perceptual variab
+sigma_target = 3  #6 # target perceptual variab
 sigma_cursor = 1 #1.0 # cursor prop+visual variab
 action_cost = .05
 dt = 1. / 60.
@@ -256,7 +263,7 @@ We try now to fit one parameter, for example the perceptual noise of the target
 ```{r}
 
 
-set.seed(123)  # Set the random seed to 123
+#set.seed(123)  # Set the random seed to 123
 Ntrials <- 20
 
 whol <- replicate(Ntrials, lqg_simSequence(dyn,actor,matrix(c(0,0),1,2),matrix(c(0,0),1,2),T,return_all = TRUE)) # we only return the state (not the belief)
@@ -269,7 +276,7 @@ optimise(lqgRW.op,c(0,10),x=xx[,,-c(3,4,5)],dyn=dyn,actor=actor) # we only need 
 
 ```{r}
 
-Ntrials <- 1
+Ntrials <- 10
 
 whol <- replicate(Ntrials, lqg_simSequence(dyn,actor,matrix(c(0,0),1,2),matrix(c(0,0),1,2),T,return_all = TRUE) )
 xx <- simplify2array(whol)
