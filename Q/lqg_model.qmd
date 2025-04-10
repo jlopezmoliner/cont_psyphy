@@ -262,7 +262,6 @@ We try now to fit one parameter, for example the perceptual noise of the target
 
 ```{r}
 
-
 #set.seed(123)  # Set the random seed to 123
 Ntrials <- 20
 
@@ -298,10 +297,9 @@ ggplot(res) +
 
 ```{r}
 
-res <- compute_ccf(xx,deriv = T,maxlag = 100)
-ggplot(kk) + 
-  stat_summary(aes(lag,ccf)) + 
-  geom_smooth(aes(lag,ccf))
+res <- compute_ccf(xx,deriv = T,maxlag = 200)
+ggplot(res[lag>-50]) + 
+  stat_summary(aes(lag,ccf))  
 
 ```
 
