@@ -293,3 +293,15 @@ ggplot(res) +
   scale_color_manual(values=c("blue","orange", "green", "red"))
 
 ```
+
+## Plotting correlograms
+
+```{r}
+
+res <- compute_ccf(xx,deriv = T,maxlag = 100)
+ggplot(kk) + 
+  stat_summary(aes(lag,ccf)) + 
+  geom_smooth(aes(lag,ccf))
+
+```
+
