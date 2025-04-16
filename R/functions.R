@@ -14,7 +14,7 @@ PosVel.op <- function(p, x, A= matrix(c(1,0,1/90,1),2,2), C = diag(1,2,2), V=dia
   
 }
 
-lqgRW.op <- function(p,x,dyn,actor,sigma_cursor=1)
+lqgRW.op <- function(p,x,dyn,actor,sigma_target=1,sigma_cursor=1)
 {
   
   W <- diag(c(sigma_target,sigma_cursor),2,2)
@@ -26,6 +26,36 @@ lqgRW.op <- function(p,x,dyn,actor,sigma_cursor=1)
   res <- -lqg(x,dyn,actor)$loglik
 }
 
+lqgRW2p.op <- function(p,x,dyn,actor,sigma_target=1,sigma_cursor=1)
+{
+  
+  W <- diag(c(sigma_target,sigma_cursor),2,2)
+  W[1,1] <- p[1] 
+  W[2,2] <- p[2]
+  #W[2,2] <- p[2]
+  dyn$W <- W
+  actor$W <- W
+  #  res <- -K_logLik(x=x,A = A,C = C, V=V, W=W)$loglik
+  res <- -lqg(x,dyn,actor)$loglik
+}
+
+lqgRW3p.op <- function(p,x,dyn,actor,sigma_target=1,sigma_cursor=1)
+{
+  V <- dyn$V
+  V[2,2] <- p[3]
+  W <- diag(c(sigma_target,sigma_cursor),2,2)
+  W[1,1] <- p[1] 
+  W[2,2] <- p[2]
+  #W[2,2] <- p[2]
+
+  dyn$V <- V
+  actor$V <- V
+  
+  dyn$W <- W
+  actor$W <- W
+  #  res <- -K_logLik(x=x,A = A,C = C, V=V, W=W)$loglik
+  res <- -lqg(x,dyn,actor)$loglik
+}
 
 dxdt <- function(x,dt=1)
 {
